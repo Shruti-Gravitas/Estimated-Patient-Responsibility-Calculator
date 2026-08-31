@@ -13,6 +13,7 @@ import PatientForm from "@/pages/patient/PatientForm"
 
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import PatientList from "@/pages/admin/PatientList"
+import AdminLayout from "./pages/admin/AdminLayout"
 
 function App() {
   return (
@@ -42,10 +43,64 @@ function App() {
         />
 
         {/* Admin */}
-        <Route
-          path="/admin/dashboard"
-          element={<AdminDashboard />}
-        />
+        <Route path="/admin" element={<AdminLayout />}>
+
+          <Route
+            path="dashboard"
+            element={<AdminDashboard />}
+          />
+
+          <Route
+            path="patients"
+            element={<PatientList />}
+          />
+
+          <Route
+            path="eligibility"
+            element={
+              <div>
+                Eligibility Check
+              </div>
+            }
+          />
+
+          <Route
+            path="benefits"
+            element={
+              <div>
+                Insurance Benefits
+              </div>
+            }
+          />
+
+          <Route
+            path="epr"
+            element={
+              <div>
+                EPR Calculator
+              </div>
+            }
+          />
+
+          <Route
+            path="estimates"
+            element={
+              <div>
+                Estimates
+              </div>
+            }
+          />
+
+          <Route
+            path="settings"
+            element={
+              <div>
+                Settings
+              </div>
+            }
+          />
+
+        </Route>
 
         <Route
           path="/admin/patients"

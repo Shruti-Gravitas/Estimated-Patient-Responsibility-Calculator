@@ -45,3 +45,26 @@ export const getPatients = async (): Promise<Patient[]> => {
 
   return response.data
 }
+
+
+// Update logged-in patient's details
+export const updateMyPatient = async (
+  data: PatientCreateData
+) => {
+  const response = await api.put(
+    "/api/patients/me",
+    data
+  )
+
+  return response.data
+}
+
+
+// Delete logged-in patient's details
+export const deleteMyPatient = async () => {
+  const response = await api.delete(
+    "/api/patients/me"
+  )
+
+  return response.data
+}

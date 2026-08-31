@@ -122,3 +122,84 @@ def get_patients(
     patients = db.query(Patient).all()
 
     return patients
+
+# ==================================================
+# Patient - Update Own Details
+# ==================================================
+
+@router.put("/me")
+def update_my_patient(
+    patient_data: PatientCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Only patients can update their own details
+    if current_user.role != "patient":
+        raise HTTPException(
+            status_code=403,
+            detail="Patient access required",
+        )
+
+    patient = (
+        db.query(Patient)
+        .filter(Patient.user_id == current_user.id)
+        .first()
+    )
+
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="Patient details not found",
+        )
+
+    # Update patient details
+    patient.patient_name = patient_data.patient_name
+    patient.date_of_birth = patient_data.date_of_birth
+    patient.insurance_card_number = (
+        patient_data.insurance_card_number
+    )
+    patient.member_id = patient_data.member_id
+
+    db.commit()
+    db.refresh(patient)
+
+    return {
+        "message": "Patient details updated successfully",
+        "patient_id": patient.id,
+    }
+
+
+# ==================================================
+# Patient - Delete Own Details
+# ==================================================
+
+@router.delete("/me")
+def delete_my_patient(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Only patients can delete their own details
+    if current_user.role != "patient":
+        raise HTTPException(
+            status_code=403,
+            detail="Patient access required",
+        )
+
+    patient = (
+        db.query(Patient)
+        .filter(Patient.user_id == current_user.id)
+        .first()
+    )
+
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="Patient details not found",
+        )
+
+    db.delete(patient)
+    db.commit()
+
+    return {
+        "message": "Patient details deleted successfully"
+    }

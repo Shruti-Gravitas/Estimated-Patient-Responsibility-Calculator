@@ -96,8 +96,6 @@ export default function Login() {
             return
           }
 
-          // Any other error should not silently
-          // redirect the user
           throw patientError
         }
       }
