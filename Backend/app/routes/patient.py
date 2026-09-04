@@ -56,10 +56,13 @@ def create_patient(
     # Create patient details linked to logged-in user
     new_patient = Patient(
         user_id=current_user.id,
-        patient_name=patient.patient_name,
+        first_name=patient.first_name,
+        last_name=patient.last_name,
         date_of_birth=patient.date_of_birth,
-        insurance_card_number=patient.insurance_card_number,
+        state=patient.state,
+        insurance_name=patient.insurance_name,
         member_id=patient.member_id,
+        group_number=patient.group_number,
     )
 
     db.add(new_patient)
@@ -123,6 +126,7 @@ def get_patients(
 
     return patients
 
+
 # ==================================================
 # Patient - Update Own Details
 # ==================================================
@@ -153,12 +157,13 @@ def update_my_patient(
         )
 
     # Update patient details
-    patient.patient_name = patient_data.patient_name
+    patient.first_name = patient_data.first_name
+    patient.last_name = patient_data.last_name
     patient.date_of_birth = patient_data.date_of_birth
-    patient.insurance_card_number = (
-        patient_data.insurance_card_number
-    )
+    patient.state = patient_data.state
+    patient.insurance_name = patient_data.insurance_name
     patient.member_id = patient_data.member_id
+    patient.group_number = patient_data.group_number
 
     db.commit()
     db.refresh(patient)

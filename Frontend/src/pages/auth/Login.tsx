@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import axios from "axios"
+
 import { loginUser } from "@/services/auth"
 import { getMyPatient } from "@/services/patient"
 
@@ -43,6 +45,7 @@ export default function Login() {
 
       console.log("Login successful:", response)
 
+
       // ==========================================
       // 2. SAVE AUTHENTICATION DETAILS
       // ==========================================
@@ -57,6 +60,7 @@ export default function Login() {
         response.role
       )
 
+
       // ==========================================
       // 3. ADMIN
       // ==========================================
@@ -66,13 +70,18 @@ export default function Login() {
         return
       }
 
+
       // ==========================================
       // 4. PATIENT
       // ==========================================
 
       if (response.role === "patient") {
         try {
-          // Check whether patient details already exist
+          /*
+           * Checks this patient already
+           * has patient details.
+           */
+
           const patient = await getMyPatient()
 
           console.log(
@@ -80,25 +89,45 @@ export default function Login() {
             patient
           )
 
-          // Patient details exist
+          /*
+           * Patient details exist.
+           * Go directly to dashboard.
+           */
+
           navigate("/patient/dashboard")
           return
 
-        } catch (patientError: any) {
+        } catch (patientError) {
+
           console.log(
             "Patient details check:",
-            patientError.response?.status
+            patientError
           )
 
-          // 404 means patient details don't exist yet
-          if (patientError.response?.status === 404) {
+
+          // ========================================
+          // Patient details do not exist
+          // ========================================
+
+          if (
+            axios.isAxiosError(patientError) &&
+            patientError.response?.status === 404
+          ) {
             navigate("/patient")
             return
           }
 
-          throw patientError
+
+          // ========================================
+          // Something else went wrong
+          // ========================================
+
+          throw new Error(
+            "Unable to check patient information."
+          )
         }
       }
+
 
       // ==========================================
       // 5. INVALID ROLE
@@ -107,23 +136,23 @@ export default function Login() {
       localStorage.removeItem("access_token")
       localStorage.removeItem("role")
 
-      setError("Invalid user role")
+      setError("Invalid user role.")
 
     } catch (error: any) {
-      console.error("Login failed:", error)
 
-      console.log(
-        "Status:",
-        error.response?.status
+      console.error(
+        "Login failed:",
+        error
       )
 
-      console.log(
-        "Response:",
-        error.response?.data
-      )
+      // Remove authentication details if
+      // something went wrong after login.
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("role")
 
       setError(
         error.response?.data?.detail ||
+        error.message ||
         "Login failed. Please try again."
       )
 
@@ -132,19 +161,23 @@ export default function Login() {
     }
   }
 
+
   return (
     <div className="min-h-screen bg-slate-950 flex">
 
-      {/* LEFT SIDE */}
+      {/* ==================================================
+          LEFT SIDE
+      ================================================== */}
+
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
 
-        {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 via-slate-950 to-blue-500/20" />
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
 
           {/* Logo */}
           <div>
+
             <div className="flex items-center gap-3">
 
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-400 text-slate-950 font-bold text-xl">
@@ -152,6 +185,7 @@ export default function Login() {
               </div>
 
               <div>
+
                 <h1 className="text-xl font-semibold text-white">
                   EPR Calculator
                 </h1>
@@ -159,12 +193,15 @@ export default function Login() {
                 <p className="text-xs text-slate-400">
                   Healthcare Cost Estimation
                 </p>
+
               </div>
 
             </div>
+
           </div>
 
-          {/* Main message */}
+
+          {/* Main Message */}
           <div className="max-w-lg">
 
             <p className="mb-4 text-sm font-medium text-teal-400">
@@ -172,10 +209,13 @@ export default function Login() {
             </p>
 
             <h2 className="text-5xl font-bold leading-tight text-white">
+
               Know your healthcare
+
               <span className="text-teal-400">
                 {" "}cost before care.
               </span>
+
             </h2>
 
             <p className="mt-6 text-lg leading-relaxed text-slate-400">
@@ -184,7 +224,8 @@ export default function Login() {
               insurance benefits.
             </p>
 
-            {/* Feature cards */}
+
+            {/* Feature Cards */}
             <div className="mt-10 grid grid-cols-2 gap-4">
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
@@ -202,6 +243,7 @@ export default function Login() {
                 </p>
 
               </div>
+
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
 
@@ -223,15 +265,21 @@ export default function Login() {
 
           </div>
 
+
+          {/* Footer */}
           <p className="text-sm text-slate-500">
             © 2026 EPR Calculator
           </p>
 
         </div>
+
       </div>
 
 
-      {/* RIGHT SIDE */}
+      {/* ==================================================
+          RIGHT SIDE
+      ================================================== */}
+
       <div className="flex w-full lg:w-1/2 items-center justify-center bg-slate-50 p-6">
 
         <Card className="w-full max-w-md border-0 shadow-2xl">
@@ -246,6 +294,7 @@ export default function Login() {
               </div>
 
               <div>
+
                 <h1 className="font-semibold">
                   EPR Calculator
                 </h1>
@@ -253,9 +302,11 @@ export default function Login() {
                 <p className="text-xs text-muted-foreground">
                   Healthcare Cost Estimation
                 </p>
+
               </div>
 
             </div>
+
 
             <CardTitle className="text-3xl font-bold">
               Welcome back

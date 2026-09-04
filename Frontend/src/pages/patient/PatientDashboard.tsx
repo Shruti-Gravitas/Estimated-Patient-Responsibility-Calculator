@@ -41,12 +41,90 @@ export default function PatientDashboard() {
 
   const [message, setMessage] = useState("")
 
-  // Edit form values
-  const [patientName, setPatientName] = useState("")
+  // ==================================================
+  // Edit Form Values
+  // ==================================================
+
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
-  const [insuranceCardNumber, setInsuranceCardNumber] =
-    useState("")
+  const [state, setState] = useState("")
+
+  const [insuranceName, setInsuranceName] = useState("")
   const [memberId, setMemberId] = useState("")
+  const [groupNumber, setGroupNumber] = useState("")
+
+
+  // ==================================================
+  // Dropdown Data
+  // ==================================================
+
+  const states = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+    "District of Columbia",
+  ]
+
+  const insuranceCompanies = [
+    "Aetna",
+    "Anthem",
+    "Blue Cross Blue Shield",
+    "Cigna",
+    "Humana",
+    "Kaiser Permanente",
+    "Medicaid",
+    "Medicare",
+    "Molina Healthcare",
+    "UnitedHealthcare",
+  ]
 
 
   // ==================================================
@@ -97,15 +175,14 @@ export default function PatientDashboard() {
       return
     }
 
-    setPatientName(patient.patient_name)
-
+    setFirstName(patient.first_name)
+    setLastName(patient.last_name)
     setDateOfBirth(patient.date_of_birth)
+    setState(patient.state)
 
-    setInsuranceCardNumber(
-      patient.insurance_card_number
-    )
-
+    setInsuranceName(patient.insurance_name)
     setMemberId(patient.member_id)
+    setGroupNumber(patient.group_number ?? "")
 
     setMessage("")
     setEditing(true)
@@ -136,11 +213,13 @@ export default function PatientDashboard() {
 
     try {
       const updatedData: PatientCreateData = {
-        patient_name: patientName,
+        first_name: firstName,
+        last_name: lastName,
         date_of_birth: dateOfBirth,
-        insurance_card_number:
-          insuranceCardNumber,
+        state: state,
+        insurance_name: insuranceName,
         member_id: memberId,
+        group_number: groupNumber || null,
       }
 
       await updateMyPatient(updatedData)
@@ -329,7 +408,8 @@ export default function PatientDashboard() {
             <div className="hidden text-right sm:block mr-2">
 
               <p className="text-sm font-medium">
-                {patient?.patient_name}
+                {patient?.first_name}{" "}
+                {patient?.last_name}
               </p>
 
               <p className="text-xs text-slate-500">
@@ -390,7 +470,8 @@ export default function PatientDashboard() {
           </p>
 
           <h2 className="mt-1 text-3xl font-bold tracking-tight">
-            Welcome, {patient?.patient_name} 👋
+            Welcome, {patient?.first_name}{" "}
+            {patient?.last_name} 👋
           </h2>
 
           <p className="mt-2 text-slate-500">
@@ -439,90 +520,243 @@ export default function PatientDashboard() {
 
               <form
                 onSubmit={handleSave}
-                className="space-y-6"
+                className="space-y-8"
               >
 
-                {/* Patient Name */}
-                <div className="space-y-2">
+                {/* ==================================================
+                    PERSONAL INFORMATION
+                ================================================== */}
 
-                  <Label htmlFor="patientName">
-                    Patient Name
-                  </Label>
+                <div>
 
-                  <Input
-                    id="patientName"
-                    value={patientName}
-                    onChange={(event) =>
-                      setPatientName(
-                        event.target.value
-                      )
-                    }
-                    required
-                  />
+                  <div className="mb-5">
+
+                    <h3 className="font-semibold text-slate-900">
+                      Personal Information
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      Update your basic patient information.
+                    </p>
+
+                  </div>
+
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+
+                    {/* First Name */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="firstName">
+                        First Name
+                      </Label>
+
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(event) =>
+                          setFirstName(
+                            event.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+
+                    {/* Last Name */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="lastName">
+                        Last Name
+                      </Label>
+
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(event) =>
+                          setLastName(
+                            event.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+
+                    {/* Date of Birth */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="dateOfBirth">
+                        Date of Birth
+                      </Label>
+
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={dateOfBirth}
+                        onChange={(event) =>
+                          setDateOfBirth(
+                            event.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+
+                    {/* State */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="state">
+                        State
+                      </Label>
+
+                      <select
+                        id="state"
+                        value={state}
+                        onChange={(event) =>
+                          setState(event.target.value)
+                        }
+                        required
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      >
+
+                        <option value="">
+                          Select your state
+                        </option>
+
+                        {states.map((stateName) => (
+                          <option
+                            key={stateName}
+                            value={stateName}
+                          >
+                            {stateName}
+                          </option>
+                        ))}
+
+                      </select>
+
+                    </div>
+
+                  </div>
 
                 </div>
 
 
-                {/* Date of Birth */}
-                <div className="space-y-2">
-
-                  <Label htmlFor="dateOfBirth">
-                    Date of Birth
-                  </Label>
-
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(event) =>
-                      setDateOfBirth(
-                        event.target.value
-                      )
-                    }
-                    required
-                  />
-
-                </div>
+                {/* Divider */}
+                <div className="border-t" />
 
 
-                {/* Insurance */}
-                <div className="space-y-2">
+                {/* ==================================================
+                    INSURANCE INFORMATION
+                ================================================== */}
 
-                  <Label htmlFor="insuranceCardNumber">
-                    Insurance Card Number
-                  </Label>
+                <div>
 
-                  <Input
-                    id="insuranceCardNumber"
-                    value={insuranceCardNumber}
-                    onChange={(event) =>
-                      setInsuranceCardNumber(
-                        event.target.value
-                      )
-                    }
-                    required
-                  />
+                  <div className="mb-5">
 
-                </div>
+                    <h3 className="font-semibold text-slate-900">
+                      Insurance Information
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      Update the information shown on your
+                      insurance card.
+                    </p>
+
+                  </div>
 
 
-                {/* Member ID */}
-                <div className="space-y-2">
+                  <div className="grid gap-5 sm:grid-cols-2">
 
-                  <Label htmlFor="memberId">
-                    Member ID
-                  </Label>
+                    {/* Insurance Name */}
+                    <div className="space-y-2 sm:col-span-2">
 
-                  <Input
-                    id="memberId"
-                    value={memberId}
-                    onChange={(event) =>
-                      setMemberId(
-                        event.target.value
-                      )
-                    }
-                    required
-                  />
+                      <Label htmlFor="insuranceName">
+                        Insurance Name
+                      </Label>
+
+                      <select
+                        id="insuranceName"
+                        value={insuranceName}
+                        onChange={(event) =>
+                          setInsuranceName(
+                            event.target.value
+                          )
+                        }
+                        required
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      >
+
+                        <option value="">
+                          Select your insurance
+                        </option>
+
+                        {insuranceCompanies.map(
+                          (insurance) => (
+                            <option
+                              key={insurance}
+                              value={insurance}
+                            >
+                              {insurance}
+                            </option>
+                          )
+                        )}
+
+                      </select>
+
+                    </div>
+
+
+                    {/* Member ID */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="memberId">
+                        Member / Subscriber ID
+                      </Label>
+
+                      <Input
+                        id="memberId"
+                        value={memberId}
+                        onChange={(event) =>
+                          setMemberId(
+                            event.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+
+                    {/* Group Number */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="groupNumber">
+                        Group Number
+                        <span className="ml-1 text-slate-400">
+                          (Optional)
+                        </span>
+                      </Label>
+
+                      <Input
+                        id="groupNumber"
+                        value={groupNumber}
+                        onChange={(event) =>
+                          setGroupNumber(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Enter group number"
+                      />
+
+                    </div>
+
+                  </div>
 
                 </div>
 
@@ -560,12 +794,15 @@ export default function PatientDashboard() {
 
           <>
             {/* ==================================================
-                PATIENT INFORMATION
+                INFORMATION CARDS
             ================================================== */}
 
             <div className="grid gap-5 md:grid-cols-2">
 
-              {/* Patient Profile */}
+              {/* ==================================================
+                  PERSONAL INFORMATION
+              ================================================== */}
+
               <Card className="border-0 shadow-sm">
 
                 <CardHeader>
@@ -576,7 +813,7 @@ export default function PatientDashboard() {
                       👤
                     </span>
 
-                    Patient Profile
+                    Personal Information
 
                   </CardTitle>
 
@@ -585,16 +822,29 @@ export default function PatientDashboard() {
 
                 <CardContent>
 
-                  <div className="space-y-4">
+                  <div className="grid gap-5 sm:grid-cols-2">
 
                     <div>
 
                       <p className="text-xs uppercase tracking-wide text-slate-400">
-                        Patient Name
+                        First Name
                       </p>
 
                       <p className="mt-1 font-medium">
-                        {patient?.patient_name}
+                        {patient?.first_name}
+                      </p>
+
+                    </div>
+
+
+                    <div>
+
+                      <p className="text-xs uppercase tracking-wide text-slate-400">
+                        Last Name
+                      </p>
+
+                      <p className="mt-1 font-medium">
+                        {patient?.last_name}
                       </p>
 
                     </div>
@@ -612,6 +862,19 @@ export default function PatientDashboard() {
 
                     </div>
 
+
+                    <div>
+
+                      <p className="text-xs uppercase tracking-wide text-slate-400">
+                        State
+                      </p>
+
+                      <p className="mt-1 font-medium">
+                        {patient?.state}
+                      </p>
+
+                    </div>
+
                   </div>
 
                 </CardContent>
@@ -619,7 +882,10 @@ export default function PatientDashboard() {
               </Card>
 
 
-              {/* Insurance */}
+              {/* ==================================================
+                  INSURANCE INFORMATION
+              ================================================== */}
+
               <Card className="border-0 shadow-sm">
 
                 <CardHeader>
@@ -630,7 +896,7 @@ export default function PatientDashboard() {
                       💳
                     </span>
 
-                    Insurance
+                    Insurance Information
 
                   </CardTitle>
 
@@ -639,16 +905,16 @@ export default function PatientDashboard() {
 
                 <CardContent>
 
-                  <div className="space-y-4">
+                  <div className="space-y-5">
 
                     <div>
 
                       <p className="text-xs uppercase tracking-wide text-slate-400">
-                        Insurance Card
+                        Insurance Name
                       </p>
 
                       <p className="mt-1 font-medium">
-                        {patient?.insurance_card_number}
+                        {patient?.insurance_name}
                       </p>
 
                     </div>
@@ -657,11 +923,24 @@ export default function PatientDashboard() {
                     <div>
 
                       <p className="text-xs uppercase tracking-wide text-slate-400">
-                        Member ID
+                        Member / Subscriber ID
                       </p>
 
                       <p className="mt-1 font-medium">
                         {patient?.member_id}
+                      </p>
+
+                    </div>
+
+
+                    <div>
+
+                      <p className="text-xs uppercase tracking-wide text-slate-400">
+                        Group Number
+                      </p>
+
+                      <p className="mt-1 font-medium">
+                        {patient?.group_number || "Not provided"}
                       </p>
 
                     </div>
@@ -687,7 +966,7 @@ export default function PatientDashboard() {
 
                   <div>
 
-                    <p className="text-sm font-medium">
+                    <p className="text-sm font-medium text-blue-600">
                       Estimated Patient Responsibility
                     </p>
 
@@ -708,7 +987,7 @@ export default function PatientDashboard() {
                     onClick={() =>
                       navigate("/patient/epr")
                     }
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap bg-black hover:cursor-pointer"
                   >
                     View EPR Estimate →
                   </Button>

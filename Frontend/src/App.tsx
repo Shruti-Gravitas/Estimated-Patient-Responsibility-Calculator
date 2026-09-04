@@ -13,14 +13,18 @@ import PatientForm from "@/pages/patient/PatientForm"
 
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import PatientList from "@/pages/admin/PatientList"
-import AdminLayout from "./pages/admin/AdminLayout"
+import PatientDetails from "@/pages/admin/PatientDetails"
+import AdminLayout from "@/pages/admin/AdminLayout"
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Authentication */}
+        {/* ==================================================
+            Authentication
+        ================================================== */}
+
         <Route
           path="/login"
           element={<Login />}
@@ -31,7 +35,11 @@ function App() {
           element={<Signup />}
         />
 
-        {/* Patient */}
+
+        {/* ==================================================
+            Patient
+        ================================================== */}
+
         <Route
           path="/patient/dashboard"
           element={<PatientDashboard />}
@@ -42,19 +50,38 @@ function App() {
           element={<PatientForm />}
         />
 
-        {/* Admin */}
-        <Route path="/admin" element={<AdminLayout />}>
 
+        {/* ==================================================
+            Admin
+        ================================================== */}
+
+        <Route
+          path="/admin"
+          element={<AdminLayout />}
+        >
+
+          {/* Admin Dashboard */}
           <Route
             path="dashboard"
             element={<AdminDashboard />}
           />
 
+
+          {/* Patient List */}
           <Route
             path="patients"
             element={<PatientList />}
           />
 
+
+          {/* Patient Details */}
+          <Route
+            path="patients/:patientId"
+            element={<PatientDetails />}
+          />
+
+
+          {/* Eligibility */}
           <Route
             path="eligibility"
             element={
@@ -64,6 +91,8 @@ function App() {
             }
           />
 
+
+          {/* Insurance Benefits */}
           <Route
             path="benefits"
             element={
@@ -73,6 +102,8 @@ function App() {
             }
           />
 
+
+          {/* EPR Calculator */}
           <Route
             path="epr"
             element={
@@ -82,6 +113,8 @@ function App() {
             }
           />
 
+
+          {/* Estimates */}
           <Route
             path="estimates"
             element={
@@ -91,6 +124,8 @@ function App() {
             }
           />
 
+
+          {/* Settings */}
           <Route
             path="settings"
             element={
@@ -102,12 +137,11 @@ function App() {
 
         </Route>
 
-        <Route
-          path="/admin/patients"
-          element={<PatientList />}
-        />
 
-        {/* Unknown route */}
+        {/* ==================================================
+            Unknown Route
+        ================================================== */}
+
         <Route
           path="*"
           element={
