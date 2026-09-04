@@ -17,14 +17,90 @@ import { Label } from "@/components/ui/label"
 export default function PatientForm() {
   const navigate = useNavigate()
 
-  const [patientName, setPatientName] = useState("")
+  // Personal Information
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
-  const [insuranceCardNumber, setInsuranceCardNumber] = useState("")
+  const [state, setState] = useState("")
+
+  // Insurance Information
+  const [insuranceName, setInsuranceName] = useState("")
   const [memberId, setMemberId] = useState("")
+  const [groupNumber, setGroupNumber] = useState("")
 
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+
+  const states = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+    "District of Columbia",
+  ]
+
+  const insuranceCompanies = [
+    "Medicare Louisiana",
+    " Medicaid Louisiana",
+    "Blue Cross Blue Shield of LA",
+    "Blue Advantage of LA",
+    "Healthy Blue of LA",
+    "Aetna",
+    "Cigna",
+    "United Healthcare",
+    "Imagine 360",
+    "LA Healthcare connections",
+    "Tricare",
+    "Champva",
+    "Ambetter"
+  ]
 
   const handleSubmit = async (
     event: React.FormEvent
@@ -37,10 +113,13 @@ export default function PatientForm() {
 
     try {
       const result = await createPatient({
-        patient_name: patientName,
+        first_name: firstName,
+        last_name: lastName,
         date_of_birth: dateOfBirth,
-        insurance_card_number: insuranceCardNumber,
+        state: state,
+        insurance_name: insuranceName,
         member_id: memberId,
+        group_number: groupNumber || null,
       })
 
       console.log("Patient created:", result)
@@ -49,7 +128,6 @@ export default function PatientForm() {
         "Your information has been saved successfully."
       )
 
-      // Go to patient dashboard
       setTimeout(() => {
         navigate("/patient/dashboard")
       }, 800)
@@ -59,7 +137,6 @@ export default function PatientForm() {
 
       setError(true)
 
-      // Get actual FastAPI error message
       if (axios.isAxiosError(error)) {
         const backendMessage =
           error.response?.data?.detail
@@ -124,6 +201,7 @@ export default function PatientForm() {
         <div className="mb-8">
 
           <div className="mb-3 flex items-center gap-2 text-sm text-blue-600">
+
             <span className="font-medium">
               Step 1
             </span>
@@ -135,6 +213,7 @@ export default function PatientForm() {
             <span className="text-slate-500">
               Patient Information
             </span>
+
           </div>
 
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -265,7 +344,10 @@ export default function PatientForm() {
                 className="space-y-8"
               >
 
-                {/* Personal Information */}
+                {/* ==================================================
+                    PERSONAL INFORMATION
+                ================================================== */}
+
                 <div>
 
                   <div className="mb-5">
@@ -283,20 +365,40 @@ export default function PatientForm() {
 
                   <div className="grid gap-5 sm:grid-cols-2">
 
-                    {/* Patient Name */}
-                    <div className="space-y-2 sm:col-span-2">
+                    {/* First Name */}
+                    <div className="space-y-2">
 
-                      <Label htmlFor="patientName">
-                        Patient Name
+                      <Label htmlFor="firstName">
+                        First Name
                       </Label>
 
                       <Input
-                        id="patientName"
-                        value={patientName}
+                        id="firstName"
+                        value={firstName}
                         onChange={(event) =>
-                          setPatientName(event.target.value)
+                          setFirstName(event.target.value)
                         }
-                        placeholder="Enter full name"
+                        placeholder="Enter first name"
+                        required
+                      />
+
+                    </div>
+
+
+                    {/* Last Name */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="lastName">
+                        Last Name
+                      </Label>
+
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(event) =>
+                          setLastName(event.target.value)
+                        }
+                        placeholder="Enter last name"
                         required
                       />
 
@@ -322,6 +424,41 @@ export default function PatientForm() {
 
                     </div>
 
+
+                    {/* State */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="state">
+                        State
+                      </Label>
+
+                      <select
+                        id="state"
+                        value={state}
+                        onChange={(event) =>
+                          setState(event.target.value)
+                        }
+                        required
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      >
+
+                        <option value="">
+                          Select your state
+                        </option>
+
+                        {states.map((stateName) => (
+                          <option
+                            key={stateName}
+                            value={stateName}
+                          >
+                            {stateName}
+                          </option>
+                        ))}
+
+                      </select>
+
+                    </div>
+
                   </div>
 
                 </div>
@@ -331,7 +468,10 @@ export default function PatientForm() {
                 <div className="border-t" />
 
 
-                {/* Insurance */}
+                {/* ==================================================
+                    INSURANCE INFORMATION
+                ================================================== */}
+
                 <div>
 
                   <div className="mb-5">
@@ -350,33 +490,48 @@ export default function PatientForm() {
 
                   <div className="grid gap-5 sm:grid-cols-2">
 
-                    {/* Insurance Card Number */}
-                    <div className="space-y-2">
+                    {/* Insurance Name */}
+                    <div className="space-y-2 sm:col-span-2">
 
-                      <Label htmlFor="insuranceCardNumber">
-                        Insurance Card Number
+                      <Label htmlFor="insuranceName">
+                        Insurance Name
                       </Label>
 
-                      <Input
-                        id="insuranceCardNumber"
-                        value={insuranceCardNumber}
+                      <select
+                        id="insuranceName"
+                        value={insuranceName}
                         onChange={(event) =>
-                          setInsuranceCardNumber(
-                            event.target.value
-                          )
+                          setInsuranceName(event.target.value)
                         }
-                        placeholder="Enter card number"
                         required
-                      />
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      >
+
+                        <option value="">
+                          Select your insurance
+                        </option>
+
+                        {insuranceCompanies.map(
+                          (insurance) => (
+                            <option
+                              key={insurance}
+                              value={insurance}
+                            >
+                              {insurance}
+                            </option>
+                          )
+                        )}
+
+                      </select>
 
                     </div>
 
 
-                    {/* Member ID */}
+                    {/* Member / Subscriber ID */}
                     <div className="space-y-2">
 
                       <Label htmlFor="memberId">
-                        Member ID
+                        Member / Subscriber ID
                       </Label>
 
                       <Input
@@ -391,6 +546,28 @@ export default function PatientForm() {
 
                     </div>
 
+
+                    {/* Group Number */}
+                    <div className="space-y-2">
+
+                      <Label htmlFor="groupNumber">
+                        Group Number
+                        <span className="ml-1 text-slate-400">
+                          (Optional)
+                        </span>
+                      </Label>
+
+                      <Input
+                        id="groupNumber"
+                        value={groupNumber}
+                        onChange={(event) =>
+                          setGroupNumber(event.target.value)
+                        }
+                        placeholder="Enter group number"
+                      />
+
+                    </div>
+
                   </div>
 
                 </div>
@@ -399,19 +576,17 @@ export default function PatientForm() {
                 {/* Message */}
                 {message && (
                   <div
-                    className={`rounded-lg border p-3 ${
-                      error
-                        ? "border-red-200 bg-red-50"
-                        : "border-green-200 bg-green-50"
-                    }`}
+                    className={`rounded-lg border p-3 ${error
+                      ? "border-red-200 bg-red-50"
+                      : "border-green-200 bg-green-50"
+                      }`}
                   >
 
                     <p
-                      className={`text-center text-sm ${
-                        error
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
+                      className={`text-center text-sm ${error
+                        ? "text-red-600"
+                        : "text-green-600"
+                        }`}
                     >
                       {message}
                     </p>

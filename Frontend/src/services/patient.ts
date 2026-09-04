@@ -3,17 +3,26 @@ import api from "./api"
 export interface Patient {
   id: number
   user_id: number
-  patient_name: string
+
+  first_name: string
+  last_name: string
   date_of_birth: string
-  insurance_card_number: string
+  state: string
+
+  insurance_name: string
   member_id: string
+  group_number: string | null
 }
 
 export interface PatientCreateData {
-  patient_name: string
+  first_name: string
+  last_name: string
   date_of_birth: string
-  insurance_card_number: string
+  state: string
+
+  insurance_name: string
   member_id: string
+  group_number: string | null
 }
 
 // Create patient
@@ -46,7 +55,6 @@ export const getPatients = async (): Promise<Patient[]> => {
   return response.data
 }
 
-
 // Update logged-in patient's details
 export const updateMyPatient = async (
   data: PatientCreateData
@@ -58,7 +66,6 @@ export const updateMyPatient = async (
 
   return response.data
 }
-
 
 // Delete logged-in patient's details
 export const deleteMyPatient = async () => {

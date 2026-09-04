@@ -21,8 +21,13 @@ class Patient(Base):
         nullable=False,
     )
 
-    patient_name: Mapped[str] = mapped_column(
-        String(150),
+    first_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    last_name: Mapped[str] = mapped_column(
+        String(100),
         nullable=False,
     )
 
@@ -31,14 +36,24 @@ class Patient(Base):
         nullable=False,
     )
 
-    insurance_card_number: Mapped[str] = mapped_column(
-        String(100),
+    state: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+
+    insurance_name: Mapped[str] = mapped_column(
+        String(150),
         nullable=False,
     )
 
     member_id: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
+    )
+
+    group_number: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

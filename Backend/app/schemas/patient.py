@@ -1,9 +1,14 @@
 from datetime import date
+
 from pydantic import BaseModel
 
 
 class PatientCreate(BaseModel):
-    patient_name: str
+    first_name: str
+    last_name: str
     date_of_birth: date
-    insurance_card_number: str
+    state: str
+
+    insurance_name: str
     member_id: str
+    group_number: str | None = None
