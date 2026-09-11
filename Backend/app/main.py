@@ -6,7 +6,8 @@ from app.models.patient import Patient
 from app.routes.patient import router as patient_router
 from app.models.user import User
 from app.routes.auth import router as auth_router
-
+from app.models.eligibility import EligibilityCheck
+from app.routes.eligibility import router as eligibility_router
 
 app = FastAPI(title="EPR Calculator API")
 
@@ -28,6 +29,7 @@ Base.metadata.create_all(bind=engine)
 # Patient routes
 app.include_router(patient_router)
 app.include_router(auth_router)
+app.include_router(eligibility_router)
 
 
 @app.get("/")

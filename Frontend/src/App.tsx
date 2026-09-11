@@ -5,16 +5,20 @@ import {
   Routes,
 } from "react-router-dom"
 
+// Authentication
 import Login from "@/pages/auth/Login"
 import Signup from "@/pages/auth/Signup"
 
+// Patient
 import PatientDashboard from "@/pages/patient/PatientDashboard"
 import PatientForm from "@/pages/patient/PatientForm"
 
+// Admin
+import AdminLayout from "@/pages/admin/AdminLayout"
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import PatientList from "@/pages/admin/PatientList"
 import PatientDetails from "@/pages/admin/PatientDetails"
-import AdminLayout from "@/pages/admin/AdminLayout"
+import EligibilityCheck from "@/pages/admin/EligibilityCheck"
 
 function App() {
   return (
@@ -59,13 +63,11 @@ function App() {
           path="/admin"
           element={<AdminLayout />}
         >
-
           {/* Admin Dashboard */}
           <Route
             path="dashboard"
             element={<AdminDashboard />}
           />
-
 
           {/* Patient List */}
           <Route
@@ -73,24 +75,17 @@ function App() {
             element={<PatientList />}
           />
 
-
           {/* Patient Details */}
           <Route
             path="patients/:patientId"
             element={<PatientDetails />}
           />
 
-
-          {/* Eligibility */}
+          {/* Eligibility Check */}
           <Route
             path="eligibility"
-            element={
-              <div>
-                Eligibility Check
-              </div>
-            }
+            element={<EligibilityCheck />}
           />
-
 
           {/* Insurance Benefits */}
           <Route
@@ -102,7 +97,6 @@ function App() {
             }
           />
 
-
           {/* EPR Calculator */}
           <Route
             path="epr"
@@ -112,7 +106,6 @@ function App() {
               </div>
             }
           />
-
 
           {/* Estimates */}
           <Route
@@ -124,7 +117,6 @@ function App() {
             }
           />
 
-
           {/* Settings */}
           <Route
             path="settings"
@@ -134,7 +126,6 @@ function App() {
               </div>
             }
           />
-
         </Route>
 
 
