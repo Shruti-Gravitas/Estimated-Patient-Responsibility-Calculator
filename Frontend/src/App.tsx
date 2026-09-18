@@ -19,6 +19,9 @@ import AdminDashboard from "@/pages/admin/AdminDashboard"
 import PatientList from "@/pages/admin/PatientList"
 import PatientDetails from "@/pages/admin/PatientDetails"
 import EligibilityCheck from "@/pages/admin/EligibilityCheck"
+import InsuranceBenefits from "@/pages/admin/InsuranceBenefits"
+import EPRCalculator from "@/pages/admin/EPRCalculator"
+import Settings from "@/pages/admin/Settings"
 
 function App() {
   return (
@@ -90,21 +93,13 @@ function App() {
           {/* Insurance Benefits */}
           <Route
             path="benefits"
-            element={
-              <div>
-                Insurance Benefits
-              </div>
-            }
+            element={<InsuranceBenefits />}
           />
 
           {/* EPR Calculator */}
           <Route
             path="epr"
-            element={
-              <div>
-                EPR Calculator
-              </div>
-            }
+            element={<EPRCalculator />}
           />
 
           {/* Estimates */}
@@ -120,11 +115,7 @@ function App() {
           {/* Settings */}
           <Route
             path="settings"
-            element={
-              <div>
-                Settings
-              </div>
-            }
+            element={<Settings />}
           />
         </Route>
 

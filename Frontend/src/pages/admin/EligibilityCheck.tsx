@@ -1,49 +1,51 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowLeft, CheckCircle2, Loader2, Search } from "lucide-react"
+import { ArrowLeft, Loader2, Search, ShieldCheck } from "lucide-react"
 
-import { getPatients, type Patient } from "../../services/patient"
+import { getPatients, type Patient } from "@/services/patient"
 import {
   checkEligibility,
   searchPayers,
   type Payer,
-  type EligibilityCheckResponse,
-} from "../../services/eligibility"
+} from "@/services/eligibility"
 
-import { Button } from "../../components/ui/button"
-import { Input } from "../../components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card"
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function EligibilityCheck() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const patientId = Number(searchParams.get("patientId"))
+  const patientId = searchParams.get("patientId")
 
   const [patient, setPatient] = useState<Patient | null>(null)
 
   const [payerSearch, setPayerSearch] = useState("")
   const [payers, setPayers] = useState<Payer[]>([])
-  const [selectedPayer, setSelectedPayer] = useState<Payer | null>(null)
+  const [selectedPayerId, setSelectedPayerId] = useState("")
 
   const [loadingPatient, setLoadingPatient] = useState(true)
   const [searchingPayers, setSearchingPayers] = useState(false)
   const [checkingEligibility, setCheckingEligibility] = useState(false)
 
-  const [eligibilityResult, setEligibilityResult] =
-    useState<EligibilityCheckResponse | null>(null)
-
   const [error, setError] = useState("")
 
-  // --------------------------------------------------
-  // Load patient
-  // --------------------------------------------------
-
+  /*
+   * Load selected patient
+   */
   useEffect(() => {
     const loadPatient = async () => {
       try {
@@ -52,22 +54,20 @@ export default function EligibilityCheck() {
 
         const patients = await getPatients()
 
-        const foundPatient = patients.find(
-          (item) => item.id === patientId
+        const selectedPatient = patients.find(
+          (item) => item.id === Number(patientId)
         )
 
-        if (!foundPatient) {
-          setError("Patient not found")
+        if (!selectedPatient) {
+          setError("Patient not found.")
           return
         }
 
-        setPatient(foundPatient)
-
-        // Start payer search with patient's insurance name
-        setPayerSearch(foundPatient.insurance_name)
+        setPatient(selectedPatient)
+        setPayerSearch(selectedPatient.insurance_name)
       } catch (err) {
         console.error(err)
-        setError("Failed to load patient information")
+        setError("Unable to load patient information.")
       } finally {
         setLoadingPatient(false)
       }
@@ -76,445 +76,370 @@ export default function EligibilityCheck() {
     if (patientId) {
       loadPatient()
     } else {
-      setError("Invalid patient ID")
       setLoadingPatient(false)
+      setError("Patient ID is missing.")
     }
   }, [patientId])
 
-  // --------------------------------------------------
-  // Search payers
-  // --------------------------------------------------
-
+  /*
+   * Search insurance payers
+   */
   const handlePayerSearch = async () => {
     if (!payerSearch.trim()) {
+      setError("Please enter an insurance name.")
       return
     }
 
     try {
       setSearchingPayers(true)
       setError("")
-      setSelectedPayer(null)
+      setPayers([])
+      setSelectedPayerId("")
 
       const result = await searchPayers(payerSearch.trim())
 
-      setPayers(
-        result.items.map((item) => item.payer)
-      )
+      const payerList =
+        result.items?.map((item) => item.payer).filter(Boolean) ?? []
+
+      setPayers(payerList)
+
+      if (payerList.length === 0) {
+        setError("No supported insurance payer found.")
+      }
     } catch (err) {
       console.error(err)
-      setError("Failed to search insurance payers")
+      setError("Unable to search insurance payers.")
     } finally {
       setSearchingPayers(false)
     }
   }
 
-  // --------------------------------------------------
-  // Check eligibility
-  // --------------------------------------------------
-
+  /*
+   * Check eligibility
+   */
   const handleCheckEligibility = async () => {
-    if (!patient || !selectedPayer) {
+    if (!patient) {
+      setError("Patient information is missing.")
+      return
+    }
+
+    if (!selectedPayerId) {
+      setError("Please select an insurance payer.")
       return
     }
 
     try {
       setCheckingEligibility(true)
       setError("")
-      setEligibilityResult(null)
 
       const result = await checkEligibility({
         patient_id: patient.id,
-        trading_partner_service_id:
-          selectedPayer.primaryPayerId,
+        trading_partner_service_id: selectedPayerId,
       })
 
-      setEligibilityResult(result)
-    } catch (err) {
+      /*
+       * Eligibility check is complete.
+       *
+       * Now move to the separate Insurance Benefits page.
+       */
+      navigate(
+        `/admin/benefits?patientId=${patient.id}&eligibilityId=${result.id}`
+      )
+    } catch (err: any) {
       console.error(err)
-      setError("Eligibility check failed")
+
+      const message =
+        err?.response?.data?.detail ||
+        "Eligibility check failed. Please try again."
+
+      setError(message)
     } finally {
       setCheckingEligibility(false)
     }
   }
 
-  // --------------------------------------------------
-  // Loading state
-  // --------------------------------------------------
-
   if (loadingPatient) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading patient information...
+        </div>
       </div>
     )
   }
 
-  // --------------------------------------------------
-  // Error / patient not found
-  // --------------------------------------------------
-
   if (!patient) {
     return (
-      <div className="p-6">
+      <div className="space-y-6 p-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/admin/patients")}
+          className="gap-2"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           Back to Patients
         </Button>
 
-        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
-          {error || "Patient not found"}
-        </div>
+        <Card>
+          <CardContent className="flex min-h-[300px] items-center justify-center">
+            <div className="text-center">
+              <p className="text-lg font-semibold">Patient not found</p>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                {error || "Please select a valid patient."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
     <div className="space-y-6 p-6">
-
       {/* Header */}
+      <div>
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/admin/patients/${patient.id}`)}
+          className="mb-2 -ml-3 gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Patient Details
+        </Button>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <Button
-            variant="ghost"
-            className="mb-2 px-0"
-            onClick={() =>
-              navigate(`/admin/patients/${patient.id}`)
-            }
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Patient
-          </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+          </div>
 
-          <h1 className="text-2xl font-semibold">
-            Eligibility Check
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Eligibility Check
+            </h1>
 
-          <p className="text-sm text-muted-foreground">
-            Verify the patient's insurance eligibility through Stedi.
-          </p>
+            <p className="text-sm text-muted-foreground">
+              Verify insurance eligibility for the selected patient.
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Error */}
-
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="pt-6">
+            <p className="text-sm font-medium text-destructive">
+              {error}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Patient Information */}
-
       <Card>
         <CardHeader>
           <CardTitle>Patient Information</CardTitle>
         </CardHeader>
 
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-3">
-
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
                 Patient Name
               </p>
 
-              <p className="font-medium">
+              <p className="mt-1 font-medium">
                 {patient.first_name} {patient.last_name}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
                 Date of Birth
               </p>
 
-              <p className="font-medium">
+              <p className="mt-1 font-medium">
                 {patient.date_of_birth}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
                 Member ID
               </p>
 
-              <p className="font-medium">
+              <p className="mt-1 font-medium">
                 {patient.member_id}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">
-                Insurance
-              </p>
-
-              <p className="font-medium">
-                {patient.insurance_name}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
                 Group Number
               </p>
 
-              <p className="font-medium">
-                {patient.group_number || "N/A"}
+              <p className="mt-1 font-medium">
+                {patient.group_number || "—"}
               </p>
             </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">
-                State
-              </p>
-
-              <p className="font-medium">
-                {patient.state}
-              </p>
-            </div>
-
           </div>
         </CardContent>
       </Card>
 
-      {/* Payer Search */}
-
+      {/* Insurance Payer */}
       <Card>
         <CardHeader>
           <CardTitle>Insurance Payer</CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Insurance Name
+              </label>
 
-          <div className="flex gap-3">
-
-            <Input
-              value={payerSearch}
-              onChange={(event) =>
-                setPayerSearch(event.target.value)
-              }
-              placeholder="Search insurance payer..."
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handlePayerSearch()
+              <Input
+                value={payerSearch}
+                onChange={(event) =>
+                  setPayerSearch(event.target.value)
                 }
-              }}
-            />
+                placeholder="Search insurance company..."
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handlePayerSearch()
+                  }
+                }}
+              />
+            </div>
 
-            <Button
-              onClick={handlePayerSearch}
-              disabled={searchingPayers}
-            >
-              {searchingPayers ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="mr-2 h-4 w-4" />
-              )}
-
-              Search
-            </Button>
-
+            <div className="flex items-end">
+              <Button
+                onClick={handlePayerSearch}
+                disabled={searchingPayers}
+                className="gap-2"
+              >
+                {searchingPayers ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Search Payer
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
-          {/* Search Results */}
-
+          {/* Payer selection */}
           {payers.length > 0 && (
-            <div className="space-y-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Select Payer
+              </label>
 
-              <p className="text-sm font-medium">
-                Search Results
-              </p>
+              <Select
+                value={selectedPayerId}
+                onValueChange={(value) =>
+                  setSelectedPayerId(value ?? "")
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select the correct insurance payer" />
+                </SelectTrigger>
 
-              {payers.map((payer) => {
-                const isSelected =
-                  selectedPayer?.stediId === payer.stediId
+                <SelectContent>
+                  {payers.map((payer) => (
+                    <SelectItem
+                      key={`${payer.stediId}-${payer.primaryPayerId}`}
+                      value={payer.primaryPayerId}
+                    >
+                      {payer.displayName} —{" "}
+                      {payer.primaryPayerId}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Selected payer */}
+          {selectedPayerId && (
+            <div className="rounded-lg border bg-muted/30 p-4">
+              {(() => {
+                const selectedPayer = payers.find(
+                  (payer) =>
+                    payer.primaryPayerId === selectedPayerId
+                )
+
+                if (!selectedPayer) return null
 
                 return (
-                  <button
-                    key={payer.stediId}
-                    type="button"
-                    onClick={() => setSelectedPayer(payer)}
-                    className={`w-full rounded-lg border p-4 text-left transition ${
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Payer Name
+                      </p>
 
-                      <div>
-                        <p className="font-medium">
-                          {payer.displayName}
-                        </p>
-
-                        <p className="text-sm text-muted-foreground">
-                          Payer ID: {payer.primaryPayerId}
-                        </p>
-
-                        <p className="text-xs text-muted-foreground">
-                          Stedi ID: {payer.stediId}
-                        </p>
-                      </div>
-
-                      {isSelected && (
-                        <CheckCircle2 className="h-5 w-5" />
-                      )}
-
+                      <p className="mt-1 font-medium">
+                        {selectedPayer.displayName}
+                      </p>
                     </div>
-                  </button>
-                )
-              })}
 
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Primary Payer ID
+                      </p>
+
+                      <p className="mt-1 font-medium">
+                        {selectedPayer.primaryPayerId}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Stedi Payer ID
+                      </p>
+
+                      <p className="mt-1 font-medium">
+                        {selectedPayer.stediId}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           )}
 
-          {payers.length === 0 && !searchingPayers && (
-            <p className="text-sm text-muted-foreground">
-              Search for the patient's insurance payer.
-            </p>
-          )}
-
+          {/* Check Eligibility */}
+          <div className="flex justify-end pt-2">
+            <Button
+              onClick={handleCheckEligibility}
+              disabled={
+                !selectedPayerId || checkingEligibility
+              }
+              className="gap-2"
+            >
+              {checkingEligibility ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking Eligibility...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="h-4 w-4" />
+                  Check Eligibility
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
-
-      {/* Selected Payer */}
-
-      {selectedPayer && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Selected Payer</CardTitle>
-          </CardHeader>
-
-          <CardContent>
-
-            <div className="rounded-lg border bg-muted/30 p-4">
-
-              <div className="grid gap-4 md:grid-cols-3">
-
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Payer Name
-                  </p>
-
-                  <p className="font-medium">
-                    {selectedPayer.displayName}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Payer ID
-                  </p>
-
-                  <p className="font-medium">
-                    {selectedPayer.primaryPayerId}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Stedi ID
-                  </p>
-
-                  <p className="font-medium">
-                    {selectedPayer.stediId}
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="mt-6">
-
-                <Button
-                  onClick={handleCheckEligibility}
-                  disabled={checkingEligibility}
-                >
-                  {checkingEligibility && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-
-                  {checkingEligibility
-                    ? "Checking Eligibility..."
-                    : "Check Eligibility"}
-                </Button>
-
-              </div>
-
-            </div>
-
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Eligibility Result */}
-
-      {eligibilityResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5" />
-              Eligibility Response
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-
-            <div className="mb-4 grid gap-4 md:grid-cols-3">
-
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Status
-                </p>
-
-                <p className="font-medium capitalize">
-                  {eligibilityResult.status}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Eligibility Record
-                </p>
-
-                <p className="font-medium">
-                  #{eligibilityResult.id}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Stedi Check ID
-                </p>
-
-                <p className="font-medium">
-                  {eligibilityResult.stedi_check_id || "N/A"}
-                </p>
-              </div>
-
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-medium">
-                Raw Stedi Response
-              </p>
-
-              <pre className="max-h-[500px] overflow-auto rounded-lg bg-slate-950 p-4 text-xs text-white">
-                {JSON.stringify(
-                  eligibilityResult.response,
-                  null,
-                  2
-                )}
-              </pre>
-            </div>
-
-          </CardContent>
-        </Card>
-      )}
-
     </div>
   )
 }
